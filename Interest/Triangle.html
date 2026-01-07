@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Triangle Calculator – Solve Any Triangle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --blue:#2563eb;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:var(--bg);
+  color:#111827;
+}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+  padding:18px;
+  margin-bottom:16px;
+}
+h1{
+  margin:0;
+  color:var(--blue);
+}
+.subtitle{
+  color:var(--muted);
+  margin-top:6px;
+}
+label{
+  font-weight:600;
+  font-size:14px;
+}
+input{
+  width:100%;
+  padding:12px;
+  margin-top:6px;
+  margin-bottom:14px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  font-size:15px;
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:var(--blue);
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+button.secondary{
+  background:#eef2ff;
+  color:#111;
+  margin-top:10px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+.result-box{
+  background:#f9fafb;
+  border-radius:10px;
+  padding:14px;
+}
+.error{
+  background:#fff4e5;
+  color:#92400e;
+  padding:12px;
+  border-radius:8px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  background:#e0e7ff;
+  color:#1e3a8a;
+  border-radius:999px;
+  font-size:12px;
+  margin-bottom:6px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="card">
+<h1>Triangle Calculator</h1>
+<p class="subtitle">
+Solve any triangle • Law of Sines • Law of Cosines • Area & Angles
+</p>
+
+<label>Side a</label>
+<input id="a" placeholder="e.g. 5">
+
+<label>Side b</label>
+<input id="b" placeholder="e.g. 6">
+
+<label>Side c</label>
+<input id="c" placeholder="e.g. 7">
+
+<label>Angle A (°)</label>
+<input id="A" placeholder="Optional">
+
+<label>Angle B (°)</label>
+<input id="B" placeholder="Optional">
+
+<label>Angle C (°)</label>
+<input id="C" placeholder="Optional">
+
+<button onclick="solveTriangle()">Calculate Triangle</button>
+<button class="secondary" onclick="resetAll()">Reset</button>
+</div>
+
+<div class="grid">
+<div class="card">
+<h3>Results</h3>
+<div id="result" class="result-box"></div>
+</div>
+
+<div class="card">
+<h3>Details</h3>
+<div id="details" class="result-box"></div>
+</div>
+</div>
+
+</div>
+
+<script>
+function degToRad(d){return d*Math.PI/180}
+function radToDeg(r){return r*180/Math.PI}
+
+function solveTriangle(){
+  let a=parseFloat(aEl.value),
+      b=parseFloat(bEl.value),
+      c=parseFloat(cEl.value),
+      A=parseFloat(AEl.value),
+      B=parseFloat(BEl.value),
+      C=parseFloat(CEl.value);
+
+  let result=document.getElementById("result");
+  let details=document.getElementById("details");
+  result.innerHTML="";
+  details.innerHTML="";
+
+  let sides=[a,b,c].filter(v=>!isNaN(v)).length;
+  let angles=[A,B,C].filter(v=>!isNaN(v)).length;
+
+  if(sides+angles<3){
+    result.innerHTML=`<div class="error">Enter at least three known values.</div>`;
+    return;
+  }
+
+  try{
+    // SSS
+    if(sides===3){
+      if(a+b<=c||a+c<=b||b+c<=a){
+        result.innerHTML=`<div class="error">Invalid triangle.</div>`;
+        return;
+      }
+      A=radToDeg(Math.acos((b*b+c*c-a*a)/(2*b*c)));
+      B=radToDeg(Math.acos((a*a+c*c-b*b)/(2*a*c)));
+      C=180-A-B;
+    }
+
+    // SAS / ASA / AAS
+    if(isNaN(a)&&!isNaN(b)&&!isNaN(c)&&!isNaN(A)){
+      a=Math.sqrt(b*b+c*c-2*b*c*Math.cos(degToRad(A)));
+    }
+    if(isNaN(b)&&!isNaN(a)&&!isNaN(c)&&!isNaN(B)){
+      b=Math.sqrt(a*a+c*c-2*a*c*Math.cos(degToRad(B)));
+    }
+    if(isNaN(c)&&!isNaN(a)&&!isNaN(b)&&!isNaN(C)){
+      c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(degToRad(C)));
+    }
+
+    if(isNaN(A)&&!isNaN(a)&&!isNaN(b)&&!isNaN(B)){
+      A=radToDeg(Math.asin(a*Math.sin(degToRad(B))/b));
+    }
+    if(isNaN(B)&&!isNaN(a)&&!isNaN(b)&&!isNaN(A)){
+      B=radToDeg(Math.asin(b*Math.sin(degToRad(A))/a));
+    }
+    if(isNaN(C)){
+      C=180-(A||0)-(B||0);
+    }
+
+    let s=(a+b+c)/2;
+    let area=Math.sqrt(s*(s-a)*(s-b)*(s-c));
+
+    result.innerHTML=`
+      <span class="badge">Solved Triangle</span><br>
+      Side a = ${a.toFixed(4)}<br>
+      Side b = ${b.toFixed(4)}<br>
+      Side c = ${c.toFixed(4)}<br><br>
+      Angle A = ${A.toFixed(2)}°<br>
+      Angle B = ${B.toFixed(2)}°<br>
+      Angle C = ${C.toFixed(2)}°
+    `;
+
+    details.innerHTML=`
+      Perimeter = ${(a+b+c).toFixed(4)}<br>
+      Area = ${area.toFixed(4)}<br>
+      Semiperimeter = ${s.toFixed(4)}
+    `;
+
+  }catch(e){
+    result.innerHTML=`<div class="error">Unable to solve this triangle.</div>`;
+  }
+}
+
+function resetAll(){
+  ["a","b","c","A","B","C"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("result").innerHTML="";
+  document.getElementById("details").innerHTML="";
+}
+
+const aEl=document.getElementById("a"),
+      bEl=document.getElementById("b"),
+      cEl=document.getElementById("c"),
+      AEl=document.getElementById("A"),
+      BEl=document.getElementById("B"),
+      CEl=document.getElementById("C");
+</script>
+
+</body>
+</html>
